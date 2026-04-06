@@ -1,0 +1,17 @@
+{
+  "name": "dashboard-user-backend",
+  "version": "1.0.0",
+  "description": "Fastify backend for complaint form submissions",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "@fastify/cors": "^10.0.1",
+    "dotenv": "^16.4.5",
+    "fastify": "^5.0.0",
+    "mongoose": "^8.7.1"
+  }
+}
