@@ -1,20 +1,73 @@
-const { login } = require("../controllers/authController");
+const {
+  loginAdmin,
+  loginCommissionerate,
+  getBootstrapStatus,
+  bootstrapAdmin,
+} = require("../controllers/authController");
 
-const loginSchema = {
+const adminLoginSchema = {
   body: {
     type: "object",
     additionalProperties: false,
-    required: ["username", "password", "portal"],
+    required: ["username", "password"],
     properties: {
       username: { type: "string", minLength: 1 },
       password: { type: "string", minLength: 1 },
-      portal: { type: "string", enum: ["sub", "admin"] },
+    },
+  },
+};
+
+const bootstrapAdminSchema = {
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["username", "password"],
+    properties: {
+      username: { type: "string", minLength: 3 },
+      password: { type: "string", minLength: 8 },
+    },
+  },
+};
+
+const commissionerateLoginSchema = {
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["commissionerateKey", "password"],
+    properties: {
+      commissionerateKey: { type: "string", minLength: 1 },
+      password: { type: "string", minLength: 1 },
     },
   },
 };
 
 async function registerAuthRoutes(fastify) {
-  fastify.post("/login", { schema: loginSchema }, login);
+  fastify.route({
+    method: "GET",
+    url: "/bootstrap-status",
+    handler: getBootstrapStatus,
+  });
+
+  fastify.route({
+    method: "POST",
+    url: "/bootstrap-admin",
+    schema: bootstrapAdminSchema,
+    handler: bootstrapAdmin,
+  });
+
+  fastify.route({
+    method: "POST",
+    url: "/login",
+    schema: adminLoginSchema,
+    handler: loginAdmin,
+  });
+
+  fastify.route({
+    method: "POST",
+    url: "/commissionerate/login",
+    schema: commissionerateLoginSchema,
+    handler: loginCommissionerate,
+  });
 }
 
 module.exports = {

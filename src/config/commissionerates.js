@@ -5,13 +5,17 @@ const COMMISSIONERATES = {
   future_city: "Future City",
 };
 
-function normalizeCommissionerate(value = "") {
-  const normalizedKey = value
+function normalizeCommissionerateKey(value = "") {
+  return value
     .toString()
     .trim()
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "_")
     .replace(/^_+|_+$/g, "");
+}
+
+function normalizeCommissionerate(value = "") {
+  const normalizedKey = normalizeCommissionerateKey(value);
 
   return COMMISSIONERATES[normalizedKey] || null;
 }
@@ -19,4 +23,5 @@ function normalizeCommissionerate(value = "") {
 module.exports = {
   COMMISSIONERATES,
   normalizeCommissionerate,
+  normalizeCommissionerateKey,
 };

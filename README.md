@@ -37,6 +37,11 @@ npm start
 - `GET /api/health`
 - `POST /api/complaints`
 - `POST /api/auth/login`
+- `GET /api/auth/bootstrap-status`
+- `POST /api/auth/bootstrap-admin`
+- `POST /api/auth/commissionerate/login`
+- `GET /api/admin/commissionerate`
+- `POST /api/admin/commissionerate`
 - `GET /api/dashboard/complaints`
 
 The server runs from the repository root with:
@@ -45,22 +50,12 @@ The server runs from the repository root with:
 npm run dev
 ```
 
-## 5. Dashboard credentials in `.env`
-
-Set one admin login and one login for each commissionerate:
+## 5. Dashboard authentication
 
 ```env
 AUTH_TOKEN_SECRET=replace-with-a-long-random-secret
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=change-me
-HYDERABAD_USERNAME=hyderabad_user
-HYDERABAD_PASSWORD=change-me
-CYBERABAD_USERNAME=cyberabad_user
-CYBERABAD_PASSWORD=change-me
-MALKAJGIRI_USERNAME=malkajgiri_user
-MALKAJGIRI_PASSWORD=change-me
-FUTURE_CITY_USERNAME=futurecity_user
-FUTURE_CITY_PASSWORD=change-me
 ```
 
-Commissionerate users can only see complaints assigned to their own commissionerate. Admin can see every complaint.
+Dashboard users are stored only in MongoDB. `.env` no longer contains admin or commissionerate usernames and passwords.
+
+Create the first admin account with `POST /api/auth/bootstrap-admin`, then use the admin dashboard to create or update commissionerate accounts. Commissionerate passwords are stored as bcrypt hashes in MongoDB, and commissionerate users can only see complaints assigned to their own commissionerate.
