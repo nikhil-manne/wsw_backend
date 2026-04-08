@@ -1,6 +1,6 @@
 const {
-  listCommissionerateCredentials,
-  changeCommissioneratePassword,
+  getCommissionerateUsers,
+  updateCommissioneratePassword,
 } = require("../controllers/credentialController");
 const { authenticate, requireAdmin } = require("../middleware/authenticate");
 
@@ -24,11 +24,19 @@ const changePasswordSchema = {
 };
 
 async function registerCredentialRoutes(fastify) {
+  if (typeof getCommissionerateUsers !== "function") {
+    throw new Error("getCommissionerateUsers is undefined");
+  }
+
+  if (typeof updateCommissioneratePassword !== "function") {
+    throw new Error("updateCommissioneratePassword is undefined");
+  }
+
   fastify.route({
     method: "GET",
     url: "/commissionerate-users",
     preHandler: [authenticate, requireAdmin],
-    handler: listCommissionerateCredentials,
+    handler: getCommissionerateUsers,
   });
 
   fastify.route({
@@ -36,7 +44,7 @@ async function registerCredentialRoutes(fastify) {
     url: "/commissionerate-users/:commissionerateKey/password",
     preHandler: [authenticate, requireAdmin],
     schema: changePasswordSchema,
-    handler: changeCommissioneratePassword,
+    handler: updateCommissioneratePassword,
   });
 }
 
