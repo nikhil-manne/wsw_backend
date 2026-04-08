@@ -2,6 +2,7 @@ const Fastify = require("fastify");
 const cors = require("@fastify/cors");
 const { registerAuthRoutes } = require("./routes/authRoutes");
 const { registerDashboardRoutes } = require("./routes/dashboardRoutes");
+const { registerCredentialRoutes } = require("./routes/credentialRoutes");
 const { registerComplaintRoutes } = require("./routes/complaintRoutes");
 const { connectToDatabase } = require("./config/database");
 
@@ -23,6 +24,7 @@ async function buildApp() {
   await app.register(registerAuthRoutes, { prefix: "/api/auth" });
   await app.register(registerComplaintRoutes, { prefix: "/api/complaints" });
   await app.register(registerDashboardRoutes, { prefix: "/api/dashboard" });
+  await app.register(registerCredentialRoutes, { prefix: "/api/dashboard" });
 
   app.setErrorHandler((error, request, reply) => {
     request.log.error(error);
