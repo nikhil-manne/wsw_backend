@@ -13,10 +13,22 @@ async function listCommissionerateCredentials(request, reply) {
 }
 
 async function changeCommissioneratePassword(request, reply) {
-  const updated = await updateCommissioneratePassword({
-    commissionerateKey: request.params.commissionerateKey,
-    password: request.body.password,
-  });
+  let updated;
+
+  try {
+    updated = await updateCommissioneratePassword({
+      commissionerateKey: request.params.commissionerateKey,
+      password: request.body.password,
+    });
+  } catch (error) {
+    if (error.code === "MISSING_ENCRYPTION_SECRET") {
+      return reply.status(400).send({
+        message: error.message,
+      });
+    }
+
+    throw error;
+  }
 
   if (!updated) {
     return reply.status(404).send({
