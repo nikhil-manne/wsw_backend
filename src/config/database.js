@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { ensureCommissionerateCredentialsSeeded } = require("../services/dashboardCredentialService");
 
 let isConnected = false;
 
@@ -19,6 +20,8 @@ async function connectToDatabase(app) {
 
   isConnected = true;
   app.log.info("MongoDB connected");
+  await ensureCommissionerateCredentialsSeeded();
+  app.log.info("Commissionerate credentials synced");
 
   mongoose.connection.on("error", (error) => {
     app.log.error(error, "MongoDB connection error");
