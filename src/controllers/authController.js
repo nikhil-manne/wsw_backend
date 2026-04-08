@@ -3,7 +3,7 @@ const { createAuthToken } = require("../utils/authToken");
 
 async function login(request, reply) {
   const { username, password, portal } = request.body;
-  const user = authenticateDashboardUser({ username, password, portal });
+  const user = await authenticateDashboardUser({ username, password, portal });
 
   if (!user) {
     return reply.status(401).send({
