@@ -24,12 +24,16 @@ const changePasswordSchema = {
 };
 
 async function registerCredentialRoutes(fastify) {
-  fastify.get("/commissionerate-users", {
+  fastify.route({
+    method: "GET",
+    url: "/commissionerate-users",
     preHandler: [authenticate, requireAdmin],
     handler: listCommissionerateCredentials,
   });
 
-  fastify.put("/commissionerate-users/:commissionerateKey/password", {
+  fastify.route({
+    method: "PUT",
+    url: "/commissionerate-users/:commissionerateKey/password",
     preHandler: [authenticate, requireAdmin],
     schema: changePasswordSchema,
     handler: changeCommissioneratePassword,
