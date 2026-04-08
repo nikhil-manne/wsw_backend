@@ -1,10 +1,13 @@
 const crypto = require("crypto");
 
 function getEncryptionSecret() {
-  const secret = process.env.CREDENTIAL_ENCRYPTION_SECRET;
+  const secret =
+    process.env.CREDENTIAL_ENCRYPTION_SECRET || process.env.AUTH_TOKEN_SECRET;
 
   if (!secret) {
-    throw new Error("Missing CREDENTIAL_ENCRYPTION_SECRET in backend/.env");
+    throw new Error(
+      "Missing CREDENTIAL_ENCRYPTION_SECRET or AUTH_TOKEN_SECRET in backend/.env"
+    );
   }
 
   return crypto.createHash("sha256").update(secret).digest();
