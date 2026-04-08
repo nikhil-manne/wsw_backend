@@ -1,4 +1,4 @@
-const { COMMISSIONERATES } = require("./commissionerates");
+const { authenticateCommissionerateUser } = require("../services/dashboardCredentialService");
 
 function readCredentialSet(usernameKey, passwordKey) {
   const username = process.env[usernameKey];
@@ -15,28 +15,7 @@ function getAdminCredentials() {
   return readCredentialSet("ADMIN_USERNAME", "ADMIN_PASSWORD");
 }
 
-function getCommissionerateUsers() {
-  return Object.entries(COMMISSIONERATES)
-    .map(([key, commissionerate]) => {
-      const credentials = readCredentialSet(
-        `${key.toUpperCase()}_USERNAME`,
-        `${key.toUpperCase()}_PASSWORD`
-      );
-
-      if (!credentials) {
-        return null;
-      }
-
-      return {
-        role: "commissionerate",
-        commissionerate,
-        ...credentials,
-      };
-    })
-    .filter(Boolean);
-}
-
-function authenticateDashboardUser({ username, password, portal }) {
+async function authenticateDashboardUser({ username, password, portal }) {
   const safePortal = portal === "admin" ? "admin" : "sub";
 
   if (safePortal === "admin") {
@@ -58,9 +37,10 @@ function authenticateDashboardUser({ username, password, portal }) {
     return null;
   }
 
-  const matchingUser = getCommissionerateUsers().find(
-    (user) => user.username === username && user.password === password
-  );
+  const matchingUser = await authenticateCommissionerateUser({
+    username,
+    password,
+  });
 
   if (!matchingUser) {
     return null;
@@ -77,5 +57,4 @@ function authenticateDashboardUser({ username, password, portal }) {
 module.exports = {
   authenticateDashboardUser,
   getAdminCredentials,
-  getCommissionerateUsers,
 };
