@@ -1,5 +1,11 @@
 const crypto = require("crypto");
 
+function hasEncryptionSecret() {
+  return Boolean(
+    process.env.CREDENTIAL_ENCRYPTION_SECRET || process.env.AUTH_TOKEN_SECRET
+  );
+}
+
 function getEncryptionSecret() {
   const secret =
     process.env.CREDENTIAL_ENCRYPTION_SECRET || process.env.AUTH_TOKEN_SECRET;
@@ -46,6 +52,7 @@ function decryptText(payload) {
 }
 
 module.exports = {
+  hasEncryptionSecret,
   encryptText,
   decryptText,
 };
