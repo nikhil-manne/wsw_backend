@@ -80,7 +80,7 @@ async function trackComplaint(request, reply) {
   const complaint = await Complaint.findOne({
     "complaint.applicationNumber": applicationNumber,
   })
-    .select("complaint.applicationNumber complaint.status complaint.complaintType complaint.naturePetition complaint.commissionerate complaint.offenceLocation officer.name createdAt updatedAt")
+    .select("complainant.firstName complainant.surname complaint.applicationNumber complaint.status complaint.complaintType complaint.naturePetition complaint.commissionerate complaint.offenceLocation officer.name createdAt updatedAt")
     .lean();
 
   if (!complaint) {
@@ -93,6 +93,9 @@ async function trackComplaint(request, reply) {
     message: "Complaint tracking details fetched successfully",
     data: {
       applicationNumber: complaint.complaint.applicationNumber,
+      complainantName: [complaint.complainant?.firstName, complaint.complainant?.surname]
+        .filter(Boolean)
+        .join(" "),
       status: complaint.complaint.status || "Submitted",
       complaintType: complaint.complaint.complaintType,
       naturePetition: complaint.complaint.naturePetition,
