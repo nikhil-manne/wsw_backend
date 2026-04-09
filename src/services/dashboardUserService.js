@@ -117,6 +117,32 @@ async function authenticateCommissionerateUser({ commissionerateKey, password })
   };
 }
 
+async function authenticateBoothUser({ username, password }) {
+  const user = await DashboardUser.findOne({
+    role: "booth",
+    username: String(username || "").trim(),
+  }).lean();
+
+  if (!user) {
+    return null;
+  }
+
+  const isValid = await verifyPassword(password, user.passwordHash);
+
+  if (!isValid) {
+    return null;
+  }
+
+  return {
+    id: String(user._id),
+    username: user.username,
+    role: "booth",
+    commissionerate: user.commissionerate,
+    portal: "booth",
+    boothLocation: user.boothLocation || null,
+  };
+}
+
 async function listCommissionerateUsers() {
   const users = await DashboardUser.find({ role: "commissionerate" })
     .sort({ commissionerate: 1 })
@@ -127,6 +153,22 @@ async function listCommissionerateUsers() {
     commissionerateKey: user.commissionerateKey,
     commissionerate: user.commissionerate,
     username: user.username,
+    createdBy: user.createdBy,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  }));
+}
+
+async function listBoothUsers() {
+  const users = await DashboardUser.find({ role: "booth" })
+    .sort({ username: 1 })
+    .lean();
+
+  return users.map((user) => ({
+    id: String(user._id),
+    username: user.username,
+    commissionerate: user.commissionerate,
+    boothLocation: user.boothLocation || null,
     createdBy: user.createdBy,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
@@ -180,11 +222,116 @@ async function createOrUpdateCommissionerateUser({
   };
 }
 
+function resolveBoothLocation(location = {}) {
+  const latitude = Number(location.latitude);
+  const longitude = Number(location.longitude);
+
+  if (
+    !Number.isFinite(latitude) ||
+    !Number.isFinite(longitude) ||
+    latitude < -90 ||
+    latitude > 90 ||
+    longitude < -180 ||
+    longitude > 180
+  ) {
+    const error = new Error("Booth location must contain valid latitude and longitude");
+    error.code = "INVALID_BOOTH_LOCATION";
+    throw error;
+  }
+
+  return { latitude, longitude };
+}
+
+async function createOrUpdateBoothUser({
+  id,
+  username,
+  password,
+  commissionerateKey,
+  boothLocation,
+  adminId,
+}) {
+  const resolved = resolveCommissionerate(commissionerateKey);
+
+  if (!resolved) {
+    const error = new Error("Invalid commissionerate key");
+    error.code = "INVALID_COMMISSIONERATE";
+    throw error;
+  }
+
+  const normalizedUsername = String(username || "").trim();
+  const update = {
+    username: normalizedUsername,
+    commissionerate: resolved.commissionerate,
+    boothLocation: resolveBoothLocation(boothLocation),
+    createdBy: adminId,
+  };
+
+  if (password) {
+    update.passwordHash = await hashPassword(password);
+  }
+
+  if (!id && !update.passwordHash) {
+    const error = new Error("Password is required when creating a booth");
+    error.code = "BOOTH_PASSWORD_REQUIRED";
+    throw error;
+  }
+
+  const filter = id
+    ? { _id: id, role: "booth" }
+    : { role: "booth", username: normalizedUsername };
+
+  const user = await DashboardUser.findOneAndUpdate(
+    filter,
+    {
+      $set: update,
+      $setOnInsert: { role: "booth" },
+    },
+    {
+      upsert: !id,
+      new: true,
+      setDefaultsOnInsert: true,
+      runValidators: true,
+    }
+  ).lean();
+
+  if (!user) {
+    const error = new Error("Booth user not found");
+    error.code = "BOOTH_NOT_FOUND";
+    throw error;
+  }
+
+  return {
+    id: String(user._id),
+    username: user.username,
+    commissionerate: user.commissionerate,
+    boothLocation: user.boothLocation || null,
+    createdBy: user.createdBy,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  };
+}
+
+async function deleteBoothUser(id) {
+  const deleted = await DashboardUser.findOneAndDelete({ _id: id, role: "booth" }).lean();
+
+  if (!deleted) {
+    const error = new Error("Booth user not found");
+    error.code = "BOOTH_NOT_FOUND";
+    throw error;
+  }
+
+  return { id: String(deleted._id) };
+}
+
 module.exports = {
   authenticateAdminUser,
+  authenticateBoothUser,
   authenticateCommissionerateUser,
   bootstrapAdminUser,
   createOrUpdateCommissionerateUser,
+  createOrUpdateBoothUser,
+  deleteBoothUser,
   hasAdminUsers,
+  listBoothUsers,
   listCommissionerateUsers,
 };

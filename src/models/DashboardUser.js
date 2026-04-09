@@ -5,7 +5,7 @@ const dashboardUserSchema = new mongoose.Schema(
     role: {
       type: String,
       required: true,
-      enum: ["admin", "commissionerate"],
+      enum: ["admin", "commissionerate", "booth"],
       index: true,
     },
     commissionerateKey: {
@@ -30,6 +30,16 @@ const dashboardUserSchema = new mongoose.Schema(
     passwordHash: {
       type: String,
       required: true,
+    },
+    boothLocation: {
+      latitude: {
+        type: Number,
+        default: null,
+      },
+      longitude: {
+        type: Number,
+        default: null,
+      },
     },
     createdBy: {
       type: String,

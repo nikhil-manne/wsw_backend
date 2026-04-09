@@ -1,5 +1,6 @@
 const {
   authenticateAdminUser,
+  authenticateBoothUser,
   authenticateCommissionerateUser,
   bootstrapAdminUser,
   hasAdminUsers,
@@ -62,6 +63,32 @@ async function loginCommissionerate(request, reply) {
   });
 }
 
+async function loginBooth(request, reply) {
+  const { username, password } = request.body;
+  const user = await authenticateBoothUser({ username, password });
+
+  if (!user) {
+    return reply.status(401).send({
+      message: "Invalid booth username or password",
+    });
+  }
+
+  const token = createAuthToken({
+    username: user.username,
+    role: user.role,
+    commissionerate: user.commissionerate,
+    portal: user.portal,
+  });
+
+  return reply.send({
+    message: "Login successful",
+    data: {
+      token,
+      user,
+    },
+  });
+}
+
 async function getBootstrapStatus(request, reply) {
   const adminConfigured = await hasAdminUsers();
 
@@ -96,6 +123,7 @@ async function bootstrapAdmin(request, reply) {
 
 module.exports = {
   loginAdmin,
+  loginBooth,
   loginCommissionerate,
   getBootstrapStatus,
   bootstrapAdmin,

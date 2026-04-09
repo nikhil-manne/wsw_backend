@@ -31,7 +31,18 @@ function requireAdmin(request, reply, done) {
   done();
 }
 
+function requireBooth(request, reply, done) {
+  if (request.user?.role !== "booth") {
+    return reply.status(403).send({
+      message: "Booth access required",
+    });
+  }
+
+  done();
+}
+
 module.exports = {
   authenticate,
+  requireBooth,
   requireAdmin,
 };

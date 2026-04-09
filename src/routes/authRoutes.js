@@ -1,5 +1,6 @@
 const {
   loginAdmin,
+  loginBooth,
   loginCommissionerate,
   getBootstrapStatus,
   bootstrapAdmin,
@@ -41,6 +42,18 @@ const commissionerateLoginSchema = {
   },
 };
 
+const boothLoginSchema = {
+  body: {
+    type: "object",
+    additionalProperties: false,
+    required: ["username", "password"],
+    properties: {
+      username: { type: "string", minLength: 1 },
+      password: { type: "string", minLength: 1 },
+    },
+  },
+};
+
 async function registerAuthRoutes(fastify) {
   fastify.route({
     method: "GET",
@@ -67,6 +80,13 @@ async function registerAuthRoutes(fastify) {
     url: "/commissionerate/login",
     schema: commissionerateLoginSchema,
     handler: loginCommissionerate,
+  });
+
+  fastify.route({
+    method: "POST",
+    url: "/booth/login",
+    schema: boothLoginSchema,
+    handler: loginBooth,
   });
 }
 

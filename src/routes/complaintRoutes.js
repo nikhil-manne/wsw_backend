@@ -1,4 +1,5 @@
 const { createComplaint } = require("../controllers/complaintController");
+const { authenticate, requireBooth } = require("../middleware/authenticate");
 
 const mobilePattern = "^[6-9][0-9]{9}$";
 
@@ -120,7 +121,7 @@ const complaintSchema = {
 };
 
 async function registerComplaintRoutes(fastify) {
-  fastify.post("/", { schema: complaintSchema }, createComplaint);
+  fastify.post("/", { preHandler: [authenticate, requireBooth], schema: complaintSchema }, createComplaint);
 }
 
 module.exports = {
