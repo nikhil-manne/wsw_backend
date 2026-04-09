@@ -5,14 +5,35 @@ const { registerAuthRoutes } = require("./routes/authRoutes");
 const { registerDashboardRoutes } = require("./routes/dashboardRoutes");
 const { registerComplaintRoutes } = require("./routes/complaintRoutes");
 const { connectToDatabase } = require("./config/database");
+const { registerSecurityHeaders } = require("./plugins/securityHeaders");
+
+function getCorsOrigin() {
+  const origin = process.env.CORS_ORIGIN;
+
+  if (!origin || origin === "*") {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("CORS_ORIGIN must be set to explicit origin(s) in production");
+    }
+
+    return true;
+  }
+
+  const origins = origin
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  return origins.length === 1 ? origins[0] : origins;
+}
 
 async function buildApp() {
   const app = Fastify({
     logger: true,
   });
 
+  await app.register(registerSecurityHeaders);
   await app.register(cors, {
-    origin: process.env.CORS_ORIGIN || true,
+    origin: getCorsOrigin(),
   });
 
   app.get("/api/health", async () => ({

@@ -41,8 +41,19 @@ function requireBooth(request, reply, done) {
   done();
 }
 
+function requireDashboardUser(request, reply, done) {
+  if (!["admin", "commissionerate"].includes(request.user?.role)) {
+    return reply.status(403).send({
+      message: "Dashboard access required",
+    });
+  }
+
+  done();
+}
+
 module.exports = {
   authenticate,
   requireBooth,
   requireAdmin,
+  requireDashboardUser,
 };

@@ -5,6 +5,19 @@ const {
   getBootstrapStatus,
   bootstrapAdmin,
 } = require("../controllers/authController");
+const { rateLimit } = require("../middleware/rateLimit");
+
+const loginRateLimit = rateLimit({
+  max: Number(process.env.LOGIN_RATE_LIMIT_MAX || 10),
+  windowMs: Number(process.env.LOGIN_RATE_LIMIT_WINDOW_MS || 60_000),
+  scope: "auth",
+});
+
+const bootstrapRateLimit = rateLimit({
+  max: Number(process.env.BOOTSTRAP_RATE_LIMIT_MAX || 5),
+  windowMs: Number(process.env.BOOTSTRAP_RATE_LIMIT_WINDOW_MS || 60_000),
+  scope: "bootstrap",
+});
 
 const adminLoginSchema = {
   body: {
@@ -64,6 +77,7 @@ async function registerAuthRoutes(fastify) {
   fastify.route({
     method: "POST",
     url: "/bootstrap-admin",
+    preHandler: bootstrapRateLimit,
     schema: bootstrapAdminSchema,
     handler: bootstrapAdmin,
   });
@@ -71,6 +85,7 @@ async function registerAuthRoutes(fastify) {
   fastify.route({
     method: "POST",
     url: "/login",
+    preHandler: loginRateLimit,
     schema: adminLoginSchema,
     handler: loginAdmin,
   });
@@ -78,6 +93,7 @@ async function registerAuthRoutes(fastify) {
   fastify.route({
     method: "POST",
     url: "/commissionerate/login",
+    preHandler: loginRateLimit,
     schema: commissionerateLoginSchema,
     handler: loginCommissionerate,
   });
@@ -85,6 +101,7 @@ async function registerAuthRoutes(fastify) {
   fastify.route({
     method: "POST",
     url: "/booth/login",
+    preHandler: loginRateLimit,
     schema: boothLoginSchema,
     handler: loginBooth,
   });

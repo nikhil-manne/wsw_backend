@@ -3,7 +3,13 @@ const crypto = require("crypto");
 const DEFAULT_TTL_SECONDS = 60 * 60 * 12;
 
 function getSecret() {
-  return process.env.AUTH_TOKEN_SECRET || "change-this-secret-in-env";
+  const secret = process.env.AUTH_TOKEN_SECRET;
+
+  if (!secret || secret.length < 32) {
+    throw new Error("AUTH_TOKEN_SECRET must be set to at least 32 characters");
+  }
+
+  return secret;
 }
 
 function base64UrlEncode(value) {

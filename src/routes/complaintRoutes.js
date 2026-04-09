@@ -1,7 +1,13 @@
 const { createComplaint, trackComplaint } = require("../controllers/complaintController");
 const { authenticate, requireBooth } = require("../middleware/authenticate");
+const { rateLimit } = require("../middleware/rateLimit");
 
 const mobilePattern = "^[6-9][0-9]{9}$";
+const trackRateLimit = rateLimit({
+  max: Number(process.env.TRACK_RATE_LIMIT_MAX || 30),
+  windowMs: Number(process.env.TRACK_RATE_LIMIT_WINDOW_MS || 60_000),
+  scope: "track",
+});
 
 const complaintSchema = {
   body: {
@@ -121,7 +127,7 @@ const complaintSchema = {
 };
 
 async function registerComplaintRoutes(fastify) {
-  fastify.get("/track/:applicationNumber", trackComplaint);
+  fastify.get("/track/:applicationNumber", { preHandler: trackRateLimit }, trackComplaint);
   fastify.post("/", { preHandler: [authenticate, requireBooth], schema: complaintSchema }, createComplaint);
 }
 
