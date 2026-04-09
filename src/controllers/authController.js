@@ -5,32 +5,60 @@ const {
   bootstrapAdminUser,
   hasAdminUsers,
 } = require("../services/dashboardUserService");
+const {
+  clearRefreshCookie,
+  createRefreshSession,
+  getCookieValue,
+  REFRESH_COOKIE_NAME,
+  rotateRefreshSession,
+  revokeRefreshSession,
+  setRefreshCookie,
+} = require("../services/sessionService");
+const { auditLog } = require("../services/auditLogService");
 const { createAuthToken } = require("../utils/authToken");
 
-async function loginAdmin(request, reply) {
-  const { username, password } = request.body;
-  const user = await authenticateAdminUser({ username, password });
-
-  if (!user) {
-    return reply.status(401).send({
-      message: "Invalid username or password",
-    });
-  }
-
-  const token = createAuthToken({
+function buildTokenPayload(user) {
+  return {
     username: user.username,
     role: user.role,
     commissionerate: user.commissionerate,
+    commissionerateKey: user.commissionerateKey,
+    portal: user.portal,
+  };
+}
+
+async function sendLoginSession(request, reply, user) {
+  const tokenPayload = buildTokenPayload(user);
+  const { refreshToken } = await createRefreshSession(tokenPayload);
+
+  setRefreshCookie(reply, refreshToken);
+  auditLog(request, "auth.login.success", {
+    username: user.username,
+    role: user.role,
     portal: user.portal,
   });
 
   return reply.send({
     message: "Login successful",
     data: {
-      token,
+      token: createAuthToken(tokenPayload),
       user,
     },
   });
+}
+
+async function loginAdmin(request, reply) {
+  const { username, password } = request.body;
+  const user = await authenticateAdminUser({ username, password });
+
+  if (!user) {
+    auditLog(request, "auth.login.failure", { username, role: "admin" });
+    return reply.status(401).send({
+      message: "Invalid username or password",
+    });
+  }
+
+  return sendLoginSession(request, reply, user);
 }
 
 async function loginCommissionerate(request, reply) {
@@ -41,26 +69,16 @@ async function loginCommissionerate(request, reply) {
   });
 
   if (!user) {
+    auditLog(request, "auth.login.failure", {
+      commissionerateKey,
+      role: "commissionerate",
+    });
     return reply.status(401).send({
       message: "Invalid commissionerate key or password",
     });
   }
 
-  const token = createAuthToken({
-    username: user.username,
-    role: user.role,
-    commissionerate: user.commissionerate,
-    commissionerateKey: user.commissionerateKey,
-    portal: user.portal,
-  });
-
-  return reply.send({
-    message: "Login successful",
-    data: {
-      token,
-      user,
-    },
-  });
+  return sendLoginSession(request, reply, user);
 }
 
 async function loginBooth(request, reply) {
@@ -68,24 +86,49 @@ async function loginBooth(request, reply) {
   const user = await authenticateBoothUser({ username, password });
 
   if (!user) {
+    auditLog(request, "auth.login.failure", { username, role: "booth" });
     return reply.status(401).send({
       message: "Invalid booth username or password",
     });
   }
 
-  const token = createAuthToken({
-    username: user.username,
-    role: user.role,
-    commissionerate: user.commissionerate,
-    portal: user.portal,
+  return sendLoginSession(request, reply, user);
+}
+
+async function refreshAuthSession(request, reply) {
+  const refreshToken = getCookieValue(request, REFRESH_COOKIE_NAME);
+  const session = await rotateRefreshSession(refreshToken);
+
+  if (!session) {
+    clearRefreshCookie(reply);
+    return reply.status(401).send({
+      message: "Refresh session expired. Please login again.",
+    });
+  }
+
+  setRefreshCookie(reply, session.refreshToken);
+  auditLog(request, "auth.refresh.success", {
+    username: session.userPayload.username,
+    role: session.userPayload.role,
   });
 
   return reply.send({
-    message: "Login successful",
+    message: "Session refreshed successfully",
     data: {
-      token,
-      user,
+      token: createAuthToken(session.userPayload),
+      user: session.userPayload,
     },
+  });
+}
+
+async function logoutAuthSession(request, reply) {
+  const refreshToken = getCookieValue(request, REFRESH_COOKIE_NAME);
+  await revokeRefreshSession(refreshToken);
+  clearRefreshCookie(reply);
+  auditLog(request, "auth.logout", {});
+
+  return reply.send({
+    message: "Logout successful",
   });
 }
 
@@ -122,9 +165,11 @@ async function bootstrapAdmin(request, reply) {
 }
 
 module.exports = {
+  bootstrapAdmin,
+  getBootstrapStatus,
   loginAdmin,
   loginBooth,
   loginCommissionerate,
-  getBootstrapStatus,
-  bootstrapAdmin,
+  logoutAuthSession,
+  refreshAuthSession,
 };

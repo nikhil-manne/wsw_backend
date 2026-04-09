@@ -13,7 +13,8 @@ MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/complaints-db?re
 DB_NAME=complaints-db
 CORS_ORIGIN=https://your-frontend.example
 AUTH_TOKEN_SECRET=replace-with-a-long-random-secret-at-least-32-chars
-AUTH_TOKEN_TTL_SECONDS=43200
+AUTH_TOKEN_TTL_SECONDS=900
+REFRESH_TOKEN_TTL_SECONDS=604800
 ```
 
 ## 2. Install dependencies
@@ -62,6 +63,8 @@ npm run dev
 ## 5. Dashboard authentication
 
 `AUTH_TOKEN_SECRET` is required and must be at least 32 characters. In production, `CORS_ORIGIN` must be one or more explicit frontend origins, separated by commas.
+
+Access tokens are HS256 JWTs. Refresh sessions are stored in MongoDB and sent to browsers as HttpOnly cookies at `/api/auth/*`; frontend fetch calls must use credentials for login/refresh/logout.
 
 Dashboard users are stored only in MongoDB. `.env` no longer contains admin or commissionerate usernames and passwords.
 

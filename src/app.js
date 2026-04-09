@@ -34,6 +34,7 @@ async function buildApp() {
   await app.register(registerSecurityHeaders);
   await app.register(cors, {
     origin: getCorsOrigin(),
+    credentials: true,
   });
 
   app.get("/api/health", async () => ({

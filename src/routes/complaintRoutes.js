@@ -9,6 +9,17 @@ const trackRateLimit = rateLimit({
   scope: "track",
 });
 
+const trackSchema = {
+  params: {
+    type: "object",
+    additionalProperties: false,
+    required: ["applicationNumber"],
+    properties: {
+      applicationNumber: { type: "string", minLength: 6, maxLength: 80 },
+    },
+  },
+};
+
 const complaintSchema = {
   body: {
     type: "object",
@@ -127,7 +138,11 @@ const complaintSchema = {
 };
 
 async function registerComplaintRoutes(fastify) {
-  fastify.get("/track/:applicationNumber", { preHandler: trackRateLimit }, trackComplaint);
+  fastify.get(
+    "/track/:applicationNumber",
+    { preHandler: trackRateLimit, schema: trackSchema },
+    trackComplaint
+  );
   fastify.post("/", { preHandler: [authenticate, requireBooth], schema: complaintSchema }, createComplaint);
 }
 

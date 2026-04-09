@@ -5,6 +5,7 @@ const {
   createOrUpdateCommissionerateUser,
   deleteBoothUser,
 } = require("../services/dashboardUserService");
+const { auditLog } = require("../services/auditLogService");
 
 async function getCommissionerateUsers(request, reply) {
   const users = await listCommissionerateUsers();
@@ -21,6 +22,10 @@ async function createOrUpdateCommissionerate(request, reply) {
       commissionerateKey: request.body.commissionerateKey,
       password: request.body.password,
       adminId: request.user?.id || request.user?.username || "admin",
+    });
+    auditLog(request, "admin.commissionerate.upsert", {
+      commissionerateKey: request.body.commissionerateKey,
+      userId: user.id,
     });
 
     return reply.send({
@@ -57,6 +62,10 @@ async function createOrUpdateBooth(request, reply) {
       boothLocation: request.body.boothLocation,
       adminId: request.user?.id || request.user?.username || "admin",
     });
+    auditLog(request, "admin.booth.upsert", {
+      boothUserId: user.id,
+      username: user.username,
+    });
 
     return reply.send({
       message: "Booth user saved successfully",
@@ -87,6 +96,9 @@ async function createOrUpdateBooth(request, reply) {
 async function deleteBooth(request, reply) {
   try {
     const deleted = await deleteBoothUser(request.params.id);
+    auditLog(request, "admin.booth.delete", {
+      boothUserId: deleted.id,
+    });
 
     return reply.send({
       message: "Booth deleted successfully",

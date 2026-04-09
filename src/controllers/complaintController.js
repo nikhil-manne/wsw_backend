@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 const Complaint = require("../models/Complaint");
 const { normalizeCommissionerate } = require("../config/commissionerates");
+const { auditLog } = require("../services/auditLogService");
 
 const APPLICATION_NUMBER_COLLISION_RETRIES = 5;
 
@@ -55,6 +56,11 @@ async function createComplaint(request, reply) {
 
   try {
     const complaint = await saveComplaintWithGeneratedNumber(payload);
+    auditLog(request, "complaint.create.success", {
+      complaintId: String(complaint._id),
+      applicationNumber: complaint.complaint.applicationNumber,
+      commissionerate: complaint.complaint.commissionerate,
+    });
 
     return reply.status(201).send({
       message: "Complaint saved successfully",

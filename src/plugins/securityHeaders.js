@@ -5,6 +5,10 @@ async function registerSecurityHeaders(app) {
     reply.header("Referrer-Policy", "no-referrer");
     reply.header("Permissions-Policy", "camera=(), geolocation=(), microphone=()");
     reply.header(
+      "Content-Security-Policy",
+      "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
+    );
+    reply.header(
       "Strict-Transport-Security",
       "max-age=15552000; includeSubDomains"
     );

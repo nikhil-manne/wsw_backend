@@ -46,6 +46,17 @@ const boothSchema = {
   },
 };
 
+const objectIdParamSchema = {
+  params: {
+    type: "object",
+    additionalProperties: false,
+    required: ["id"],
+    properties: {
+      id: { type: "string", pattern: "^[a-fA-F0-9]{24}$" },
+    },
+  },
+};
+
 async function registerAdminRoutes(fastify) {
   fastify.route({
     method: "GET",
@@ -81,6 +92,7 @@ async function registerAdminRoutes(fastify) {
     method: "DELETE",
     url: "/booths/:id",
     preHandler: [authenticate, requireAdmin],
+    schema: objectIdParamSchema,
     handler: deleteBooth,
   });
 }

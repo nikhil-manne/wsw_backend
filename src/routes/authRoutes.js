@@ -2,6 +2,8 @@ const {
   loginAdmin,
   loginBooth,
   loginCommissionerate,
+  logoutAuthSession,
+  refreshAuthSession,
   getBootstrapStatus,
   bootstrapAdmin,
 } = require("../controllers/authController");
@@ -104,6 +106,19 @@ async function registerAuthRoutes(fastify) {
     preHandler: loginRateLimit,
     schema: boothLoginSchema,
     handler: loginBooth,
+  });
+
+  fastify.route({
+    method: "POST",
+    url: "/refresh",
+    preHandler: loginRateLimit,
+    handler: refreshAuthSession,
+  });
+
+  fastify.route({
+    method: "POST",
+    url: "/logout",
+    handler: logoutAuthSession,
   });
 }
 
