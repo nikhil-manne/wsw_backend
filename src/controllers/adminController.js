@@ -21,6 +21,7 @@ async function createOrUpdateCommissionerate(request, reply) {
     const user = await createOrUpdateCommissionerateUser({
       commissionerateKey: request.body.commissionerateKey,
       password: request.body.password,
+      commissionerateMobile: request.body.commissionerateMobile,
       adminId: request.user?.id || request.user?.username || "admin",
     });
     auditLog(request, "admin.commissionerate.upsert", {
@@ -33,7 +34,10 @@ async function createOrUpdateCommissionerate(request, reply) {
       data: user,
     });
   } catch (error) {
-    if (error.code === "INVALID_COMMISSIONERATE") {
+    if (
+      error.code === "INVALID_COMMISSIONERATE" ||
+      error.code === "INVALID_COMMISSIONERATE_MOBILE"
+    ) {
       return reply.status(400).send({
         message: error.message,
       });
