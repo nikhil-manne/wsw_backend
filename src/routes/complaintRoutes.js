@@ -1,4 +1,8 @@
-const { createComplaint, trackComplaint } = require("../controllers/complaintController");
+const {
+  createComplaint,
+  getCommissionerateContactForBooth,
+  trackComplaint,
+} = require("../controllers/complaintController");
 const { authenticate, requireBooth } = require("../middleware/authenticate");
 const { rateLimit } = require("../middleware/rateLimit");
 
@@ -16,6 +20,17 @@ const trackSchema = {
     required: ["applicationNumber"],
     properties: {
       applicationNumber: { type: "string", minLength: 6, maxLength: 80 },
+    },
+  },
+};
+
+const commissionerateContactSchema = {
+  params: {
+    type: "object",
+    additionalProperties: false,
+    required: ["commissionerateKey"],
+    properties: {
+      commissionerateKey: { type: "string", minLength: 1, maxLength: 100 },
     },
   },
 };
@@ -144,6 +159,14 @@ async function registerComplaintRoutes(fastify) {
     trackComplaint
   );
   fastify.post("/", { preHandler: [authenticate, requireBooth], schema: complaintSchema }, createComplaint);
+  fastify.get(
+    "/commissionerate-contact/:commissionerateKey",
+    {
+      preHandler: [authenticate, requireBooth],
+      schema: commissionerateContactSchema,
+    },
+    getCommissionerateContactForBooth
+  );
 }
 
 module.exports = {
