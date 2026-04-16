@@ -6,6 +6,7 @@ const {
 } = require("../config/commissionerates");
 
 const SALT_ROUNDS = 10;
+const COMMISSIONERATE_MOBILE_PATTERN = /^[6-9][0-9]{9}$/;
 
 function buildCommissionerateUsername(commissionerateKey) {
   return commissionerateKey.toLowerCase();
@@ -152,6 +153,7 @@ async function listCommissionerateUsers() {
     id: String(user._id),
     commissionerateKey: user.commissionerateKey,
     commissionerate: user.commissionerate,
+    commissionerateMobile: user.commissionerateMobile || "",
     username: user.username,
     createdBy: user.createdBy,
     createdAt: user.createdAt,
@@ -178,6 +180,7 @@ async function listBoothUsers() {
 async function createOrUpdateCommissionerateUser({
   commissionerateKey,
   password,
+  commissionerateMobile,
   adminId,
 }) {
   const resolved = resolveCommissionerate(commissionerateKey);
@@ -185,6 +188,14 @@ async function createOrUpdateCommissionerateUser({
   if (!resolved) {
     const error = new Error("Invalid commissionerate key");
     error.code = "INVALID_COMMISSIONERATE";
+    throw error;
+  }
+
+  const normalizedMobile = String(commissionerateMobile || "").trim();
+
+  if (!COMMISSIONERATE_MOBILE_PATTERN.test(normalizedMobile)) {
+    const error = new Error("Commissionerate mobile number must be a valid 10-digit Indian mobile");
+    error.code = "INVALID_COMMISSIONERATE_MOBILE";
     throw error;
   }
 
@@ -200,6 +211,7 @@ async function createOrUpdateCommissionerateUser({
       $set: {
         username,
         commissionerate: resolved.commissionerate,
+        commissionerateMobile: normalizedMobile,
         passwordHash,
         createdBy: adminId,
       },
@@ -215,10 +227,40 @@ async function createOrUpdateCommissionerateUser({
     id: String(user._id),
     commissionerateKey: user.commissionerateKey,
     commissionerate: user.commissionerate,
+    commissionerateMobile: user.commissionerateMobile || "",
     username: user.username,
     createdBy: user.createdBy,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
+  };
+}
+
+async function getCommissionerateContact({ commissionerateKey }) {
+  const resolved = resolveCommissionerate(commissionerateKey);
+
+  if (!resolved) {
+    const error = new Error("Invalid commissionerate key");
+    error.code = "INVALID_COMMISSIONERATE";
+    throw error;
+  }
+
+  const user = await DashboardUser.findOne({
+    role: "commissionerate",
+    commissionerateKey: resolved.commissionerateKey,
+  })
+    .select("commissionerate commissionerateKey commissionerateMobile")
+    .lean();
+
+  if (!user || !COMMISSIONERATE_MOBILE_PATTERN.test(String(user.commissionerateMobile || ""))) {
+    const error = new Error("Commissionerate mobile number is not configured");
+    error.code = "COMMISSIONERATE_MOBILE_NOT_FOUND";
+    throw error;
+  }
+
+  return {
+    commissionerateKey: user.commissionerateKey,
+    commissionerate: user.commissionerate,
+    mobile: user.commissionerateMobile,
   };
 }
 
@@ -331,6 +373,7 @@ module.exports = {
   createOrUpdateCommissionerateUser,
   createOrUpdateBoothUser,
   deleteBoothUser,
+  getCommissionerateContact,
   hasAdminUsers,
   listBoothUsers,
   listCommissionerateUsers,
