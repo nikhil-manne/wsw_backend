@@ -2,6 +2,7 @@ const crypto = require("crypto");
 const Complaint = require("../models/Complaint");
 const { normalizeCommissionerate } = require("../config/commissionerates");
 const { auditLog } = require("../services/auditLogService");
+const { getCommissionerateContact } = require("../services/dashboardUserService");
 
 const APPLICATION_NUMBER_COLLISION_RETRIES = 5;
 
@@ -114,8 +115,36 @@ async function trackComplaint(request, reply) {
   });
 }
 
+async function getCommissionerateContactForBooth(request, reply) {
+  try {
+    const data = await getCommissionerateContact({
+      commissionerateKey: request.params.commissionerateKey,
+    });
+
+    return reply.send({
+      message: "Commissionerate contact fetched successfully",
+      data,
+    });
+  } catch (error) {
+    if (error.code === "INVALID_COMMISSIONERATE") {
+      return reply.status(400).send({
+        message: error.message,
+      });
+    }
+
+    if (error.code === "COMMISSIONERATE_MOBILE_NOT_FOUND") {
+      return reply.status(404).send({
+        message: error.message,
+      });
+    }
+
+    throw error;
+  }
+}
+
 module.exports = {
   createApplicationNumber,
   createComplaint,
+  getCommissionerateContactForBooth,
   trackComplaint,
 };
