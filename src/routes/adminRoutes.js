@@ -11,10 +11,11 @@ const commissionerateSchema = {
   body: {
     type: "object",
     additionalProperties: false,
-    required: ["commissionerateKey", "password"],
+    required: ["commissionerateKey", "password", "commissionerateMobile"],
     properties: {
       commissionerateKey: { type: "string", minLength: 1 },
       password: { type: "string", minLength: 8 },
+      commissionerateMobile: { type: "string", pattern: "^[6-9][0-9]{9}$" },
     },
   },
 };
