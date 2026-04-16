@@ -20,6 +20,11 @@ const dashboardUserSchema = new mongoose.Schema(
       trim: true,
       default: null,
     },
+    commissionerateMobile: {
+      type: String,
+      trim: true,
+      default: null,
+    },
     username: {
       type: String,
       required: true,
