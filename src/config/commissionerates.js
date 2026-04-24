@@ -3,6 +3,12 @@ const COMMISSIONERATES = {
   cyberabad: "Cyberabad",
   malkajgiri: "Malkajgiri",
   future_city: "Future City",
+  warangal: "Warangal",
+  karimnagar: "Karimnagar",
+  nizamabad: "Nizamabad",
+  khammam: "Khammam",
+  ramagundam: "Ramagundam",
+  siddipet: "Siddipet",
 };
 
 const COMMISSIONERATE_ALIASES = {
@@ -10,6 +16,12 @@ const COMMISSIONERATE_ALIASES = {
   hyderbad: "hyderabad",
   malkagiri: "malkajgiri",
   futurecity: "future_city",
+  warangalpolice: "warangal",
+  karimnagarpolice: "karimnagar",
+  nizamabadpolice: "nizamabad",
+  khammampolice: "khammam",
+  ramagundampolice: "ramagundam",
+  siddipetpolice: "siddipet",
 };
 
 function normalizeCommissionerateKey(value = "") {
